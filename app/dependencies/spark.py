@@ -12,7 +12,7 @@ import json
 from pyspark import SparkFiles
 from pyspark.sql import SparkSession
 
-from dependencies import logging
+from app.dependencies import spark_logging
 
 
 def start_spark(app_name='my_spark_app', master='local[*]', jar_packages=[],
@@ -86,7 +86,7 @@ def start_spark(app_name='my_spark_app', master='local[*]', jar_packages=[],
 
     # create session and retrieve Spark logger object
     spark_sess = spark_builder.getOrCreate()
-    spark_logger = logging.Log4j(spark_sess)
+    spark_logger = spark_logging.Log4j(spark_sess)
 
     # get config file if sent to cluster with --files
     spark_files_dir = SparkFiles.getRootDirectory()

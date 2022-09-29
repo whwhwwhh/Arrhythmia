@@ -20,10 +20,10 @@ required by the ml job; and, ml_job.py contains the Spark application
 to be executed by a driver process on the Spark master node.
 """
 
-from dependencies.spark import start_spark
-from dependencies.prepare_data import load_arraythmia_data
-from dependencies.feature_selection import normalise_data, select_features
-from dependencies.model import Model
+from app.dependencies.spark import start_spark
+from app.dependencies.prepare_data import load_arraythmia_data
+from app.dependencies.feature_selection import normalise_data, select_features
+from app.dependencies.model import Model
 from pyspark.ml.linalg import Vectors
 
         
@@ -41,13 +41,14 @@ def main():
     # log that main ml job is starting
     log.warn('ml_job is up-and-running')
     
-    data_path = 'app/data/arrhythmia.data'
+    data_path = '../data/arrhythmia.data'
     
     
     np_array, labels = load_arraythmia_data(data_path)
+    print(np_array)
     #optional 
     np_array = normalise_data(np_array)
-    
+
     list_tuples = []
     for i in range(0, len(np_array)):
         list_tuples.append((labels[i],Vectors.dense(np_array[i])))

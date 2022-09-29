@@ -2,7 +2,7 @@ from pyspark.ml import Pipeline, PipelineModel
 from pyspark.ml.evaluation import BinaryClassificationEvaluator
 from pyspark.ml.tuning import CrossValidator, ParamGridBuilder
 from pyspark.ml.tuning import ParamGridBuilder
-from app.dependencies.model_config import classifictaion_models
+from dependencies.model_config import classifictaion_models
 from pyspark.ml.param import Param
 import numpy as np
 import os
@@ -28,15 +28,18 @@ class Model():
         if model_name in classifictaion_models:
             self.model_name = model_name
             self.params = classifictaion_models[model_name]
-            self.tuning_params = classifictaion_models[model_name]['tuning_params']
             self.model = None
             #load a dynamic model
             classToImport = __import__("pyspark.ml.classification", fromlist=[self.model_name])
             dynamic_class = getattr(classToImport, self.model_name)
-            args = {}
+            arg_str_list = []
             for params_name, value in self.params.items():
-                if isinstance(value, (str, int, float)):
-                    args[params_name] = value
+                if isinstance(value, (str)):
+                    arg_str_list.append(params_name+"="+"'"+value+"'")
+                elif isinstance(value, (int, float)):
+                    arg_str_list.append(params_name+"="+str(value))
+            arg_str = ','.join(arg_str_list)
+            args = dict(e.split('=') for e in arg_str.split(','))
             self.dynamic_model = dynamic_class(**args)
         else:
             raise NameError('Please select the a valid classification model!')
@@ -51,6 +54,7 @@ class Model():
         return self.model.transform(test)
         
     def train(self, train, test):
+        self.__select_model()
         pipeline = Pipeline(stages=[self.model])
         model = pipeline.fit(train)
         evaluator = BinaryClassificationEvaluator()
@@ -61,10 +65,10 @@ class Model():
             
     def tune(self, train, test, model_save_to, useCrossValidation=True, numFolds=5):
         paramGrid = ParamGridBuilder()
-        for name, value in self.tuning_params.items():
-            param = Param(parent=self.dynamic_model, name=name, doc='')
-            paramGrid = paramGrid.addGrid(param, value)
-        paramGrid = paramGrid.build()
+        for name, value in self.params.items():
+            param = Param(parent = self.model, name = 'maxDepth', doc='')
+            ParamGridBuilder.addGrid(param, value)
+        paramGrid.build()
         
         pipeline = Pipeline(stages=[self.dynamic_model])
         
