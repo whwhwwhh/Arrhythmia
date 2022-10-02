@@ -44,19 +44,19 @@ Just validate your cluster accesing the spark UI on each worker & master URL.
 
 http://localhost:9090/
 
-![alt text](docs/spark-master.png "Spark master UI")
+![alt text](docs/master.png "Spark master UI")
 
 ### Spark Worker 1
 
 http://localhost:9091/
 
-![alt text](docs/spark-worker-1.png "Spark worker 1 UI")
+![alt text](docs/worker0.png "Spark worker 1 UI")
 
 ### Spark Worker 2
 
 http://localhost:9092/
 
-![alt text](docs/spark-worker-2.png "Spark worker 2 UI")
+![alt text](docs/worker1.png "Spark worker 2 UI")
 
 
 # Resource Allocation 
@@ -104,13 +104,6 @@ To submit the app connect to one of the workers or the master and execute:
 --files /opt/spark-apps/ml_configs.json \
 /opt/spark-apps/ml_job.py
 ```
-
-![alt text](./articles/images/pyspark-demo.png "Spark UI with pyspark program running")
-
-
-You will notice on the spark-ui a driver program and executor program running(In scala we can use deploy-mode cluster)
-
-![alt text](./articles/images/stats-app.png "Spark UI with scala program running")
 
 # Model Configuration
 Currently, this project supports 4 types of classification models (LogisticRegression, DecisionTreeClassifier, RandomForestClassifier,  and GBTClassifier). The number of models can simplied expanded by adding more settings in the apps/model_config.py.
