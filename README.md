@@ -1,17 +1,15 @@
-# Spark Cluster with Docker & docker-compose(2021 ver.)
+# A set of ML models for binary classification
+## Spark Cluster with Docker & docker-compose
 
 # General
 
-A simple spark standalone cluster for your testing environment purposses. A *docker-compose up* away from you solution for your spark development environment.
-
-The Docker compose will create the following containers:
+A spark standalone cluster is hosted by three docker containers. The Docker compose will create the following containers:
 
 container|Exposed ports
 ---|---
 spark-master|9090 7077
 spark-worker-1|9091
 spark-worker-2|9092
-demo-database|5432
 
 # Installation
 
@@ -27,7 +25,7 @@ The following steps will make you run your spark cluster's containers.
 
 
 ```sh
-docker build -t cluster-apache-spark:3.0.2 .
+docker build -t cluster-apache-spark:3.3.0 .
 ```
 
 ## Run the docker-compose
@@ -84,20 +82,17 @@ Host Mount|Container Mount|Purposse
 apps|/opt/spark-apps|Used to make available your app's jars on all workers & master
 data|/opt/spark-data| Used to make available your app's data on all workers & master
 
-This is basically a dummy DFS created from docker Volumes...(maybe not...)
+**NOTE: the training data has been removed, please add your data file into apps/data**
+
 
 # Run Sample applications
 
 
-## NY Bus Stops Data [Pyspark]
+## Pyspark
 
-This programs just loads archived data from [MTA Bus Time](http://web.mta.info/developers/MTA-Bus-Time-historical-data.html) and apply basic filters using spark sql, the result are persisted into a postgresql table.
+This program loads Arrhythmia data to train a binary classification model, please preload the data into apps/data folder.
 
-The loaded table will contain the following structure:
-
-latitude|longitude|time_received|vehicle_id|distance_along_trip|inferred_direction_id|inferred_phase|inferred_route_id|inferred_trip_id|next_scheduled_stop_distance|next_scheduled_stop_id|report_hour|report_date
----|---|---|---|---|---|---|---|---|---|---|---|---
-40.668602|-73.986697|2014-08-01 04:00:01|469|4135.34710710144|1|IN_PROGRESS|MTA NYCT_B63|MTA NYCT_JG_C4-Weekday-141500_B63_123|2.63183804205619|MTA_305423|2014-08-01 04:00:00|2014-08-01
+This program can also be used for other binary classification tasks. Just simply add your customerised data loading functions into prepare_data.py file. Then change the settings in the ml_job.py to fit your purpose of training.
 
 To submit the app connect to one of the workers or the master and execute:
 
@@ -117,38 +112,21 @@ You will notice on the spark-ui a driver program and executor program running(In
 
 ![alt text](./articles/images/stats-app.png "Spark UI with scala program running")
 
+# Model Configuration
+Currently, this project supports 4 types of classification models (LogisticRegression, DecisionTreeClassifier, RandomForestClassifier,  and GBTClassifier). The number of models can simplied expanded by adding more settings in the apps/model_config.py.
+You can also modify the hyperparameters as your needs.
+**NOTE: all types of classifiers under the "pyspark.ml.classification" can be inserted.
 
-# Summary
-
-* We compiled the necessary docker image to run spark master and worker containers.
-
-* We created a spark standalone cluster using 2 worker nodes and 1 master node using docker && docker-compose.
-
-* Copied the resources necessary to run demo applications.
-
-* We ran a distributed application at home(just need enough cpu cores and RAM to do so).
-
-# Why a standalone cluster?
-
-* This is intended to be used for test purposes, basically a way of running distributed spark apps on your laptop or desktop.
-
-* This will be useful to use CI/CD pipelines for your spark apps(A really difficult and hot topic)
-
-# Steps to connect and use a pyspark shell interactively
-
-* Follow the steps to run the docker-compose file. You can scale this down if needed to 1 worker. 
-
-```sh
-docker-compose up --scale spark-worker=1
-docker exec -it docker-spark-cluster_spark-worker_1 bash
-apt update
-apt install python3-pip
-pip3 install pyspark
-pyspark
+For example 
 ```
-
-# What's left to do?
-
-* Right now to run applications in deploy-mode cluster is necessary to specify arbitrary driver port.
-
-* The spark submit entry in the start-spark.sh is unimplemented, the submit used in the demos can be triggered from any worker
+classifictaion_models = {
+    'LogisticRegression':
+        {'maxIter':30, 
+         'featuresCol':'selectedFeatures', 
+         'labelCol':'label', 
+         'regParam':0.1, 
+         'tuning_params':{
+             'maxIter':[10, 20, 30],
+             'regParam': [0.1, 0.01]
+         }}, }
+```
