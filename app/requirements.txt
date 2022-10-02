@@ -1,4 +1,0 @@
-pandas
-pyspark
-scikit-learn
-jupyter
